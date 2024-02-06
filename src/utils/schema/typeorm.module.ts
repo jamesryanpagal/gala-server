@@ -16,7 +16,12 @@ export const Typeorm = TypeOrmModule.forRoot({
   synchronize: true,
 });
 
-export const TypeormAuthFeatures = TypeOrmModule.forFeature([User]);
+export const TypeormAuthFeatures = TypeOrmModule.forFeature([
+  User,
+  Region,
+  Province,
+  CityOrMunicipality,
+]);
 export const TypeormPhPlacesFeatures = TypeOrmModule.forFeature([
   Region,
   Province,

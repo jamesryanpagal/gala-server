@@ -4,14 +4,16 @@ import {
   DeleteDateColumn,
   Entity,
   Generated,
+  OneToMany,
   PrimaryColumn,
   Repository,
   UpdateDateColumn,
 } from "typeorm";
+import { User } from "../user/User.entity";
 
 @Entity({ name: "citiesormunicipalities" })
 export class CityOrMunicipality {
-  @PrimaryColumn()
+  @PrimaryColumn("uuid")
   @Generated("uuid")
   cityormunicipalityId: string;
 
@@ -41,6 +43,9 @@ export class CityOrMunicipality {
 
   @Column()
   digitcode: string;
+
+  @OneToMany(() => User, user => user.cityormunicipality)
+  users: User[];
 
   @CreateDateColumn()
   datecreated: Date;

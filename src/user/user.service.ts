@@ -1,8 +1,26 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Gender } from "src/utils/constants/constants";
 import { ErrorResponseService } from "src/utils/response/response.service";
 import { User, UserRepo } from "src/utils/schema";
-import { SignupDto } from "src/utils/types";
+import { FindOptionsRelations, FindOptionsSelect } from "typeorm";
+
+type UserKey = keyof User;
+type UserKeys = UserKey[];
+
+type UserProps = {
+  selectionType: "multiple";
+  key: UserKeys;
+  value: string;
+};
+
+type UserProp = {
+  selectionType: "single";
+  key: UserKey;
+  value: string;
+};
+
+type GetUserProps = UserProps | UserProp;
 
 @Injectable()
 export class UserService {
@@ -11,23 +29,47 @@ export class UserService {
     private errorResponseService: ErrorResponseService,
   ) {}
 
-  async getUser(key: keyof SignupDto, value: string) {
+  async getUser({ selectionType = "multiple", key, value }: GetUserProps) {
+    const isArrayOfProps = selectionType === "multiple" && Array.isArray(key);
+
+    const selectOptions: FindOptionsSelect<User> = {
+      userid: true,
+      firstname: true,
+      middle: true,
+      lastname: true,
+      birthdate: true,
+      gender: true,
+      region: {
+        region: true,
+        regionname: true,
+        digitcode: true,
+      },
+      province: {
+        province: true,
+        digitcode: true,
+      },
+      cityormunicipality: {
+        cityormunicipality: true,
+        digitcode: true,
+      },
+      cellphonenum: true,
+      username: true,
+      email: true,
+    };
+
+    const relationOptions: FindOptionsRelations<User> = {
+      region: true,
+      province: true,
+      cityormunicipality: true,
+    };
+
     try {
       const user = await this.userRepo.findOne({
-        where:
-          key === "email"
-            ? [{ email: value }, { username: value }]
-            : { [key]: value },
-        select: [
-          "firstname",
-          "middle",
-          "lastname",
-          "birthdate",
-          "address",
-          "cellphoneNum",
-          "username",
-          "email",
-        ],
+        where: !isArrayOfProps
+          ? { [`${key}`]: value }
+          : key.map(k => ({ [k]: value })),
+        select: selectOptions,
+        relations: relationOptions,
       });
 
       if (!!!user) {
@@ -35,7 +77,7 @@ export class UserService {
         return;
       }
 
-      return user;
+      return { ...user, gender: Gender[user.gender] };
     } catch (error) {
       this.errorResponseService.CATCH(error);
     }

@@ -8,10 +8,13 @@ export class PaginateDto {
   size: number;
 
   search: string;
+
+  initialCode: string;
 }
 
+export class RegionDto extends PaginateDto {}
+
 export class ProvinceDto extends PaginateDto {
-  @IsNotEmpty()
   regionCode: string;
 }
 

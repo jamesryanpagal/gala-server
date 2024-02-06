@@ -21,15 +21,18 @@ export class SignupDto {
   birthdate: string;
 
   @IsNotEmpty()
+  gender: number;
+
+  @IsNotEmpty()
   region: string;
 
   province: string;
 
   @IsNotEmpty()
-  cityOrMunicipality: string;
+  cityormunicipality: string;
 
   @IsNotEmpty()
-  cellphoneNum: string;
+  cellphonenum: string;
 
   @IsNotEmpty()
   username: string;

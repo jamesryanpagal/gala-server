@@ -4,18 +4,16 @@ import { SuccessResponseService } from "src/utils/response/response.service";
 import {
   CityOrMunicipality,
   CityOrMunicipalityRepo,
+  Province,
+  ProvinceRepo,
   Region,
   RegionRepo,
 } from "src/utils/schema";
 import {
-  Province,
-  ProvinceRepo,
-} from "src/utils/schema/entities/ph-places/Province.entity";
-import {
   CityOrMunicipalityDto,
-  PaginateDto,
   PaginatedData,
   ProvinceDto,
+  RegionDto,
 } from "src/utils/types";
 import { ILike } from "typeorm";
 
@@ -50,14 +48,17 @@ export class PhPlacesService {
    * @param search series of character for filtering data
    * @returns filtered list of province based of region code
    */
-  async onGetRegion({ page, size, search }: PaginateDto) {
+
+  async onGetRegion({ page, size, search, initialCode }: RegionDto) {
     const regions = await this.regionRepo.find(
-      !!search && {
-        where: [
-          { region: ILike(`%${search}%`) },
-          { regionname: ILike(`%${search}%`) },
-        ],
-      },
+      !!initialCode
+        ? { where: [{ code: initialCode }] }
+        : !!search && {
+            where: [
+              { region: ILike(`%${search}%`) },
+              { regionname: ILike(`%${search}%`) },
+            ],
+          },
     );
 
     const { totalPage, data } = this.onPaginate(page, size, regions);
@@ -72,13 +73,23 @@ export class PhPlacesService {
    * @param regionCode id from region one of region data for filtering province data
    * @returns filtered list of province based of region code
    */
-  async onGetProvince({ page, size, search, regionCode }: ProvinceDto) {
-    const provinces = await this.provinceRepo.find({
-      where: {
-        regioncode: regionCode,
-        ...(!!search && { province: ILike(`%${search}%`) }),
-      },
-    });
+  async onGetProvince({
+    page,
+    size,
+    search,
+    regionCode,
+    initialCode,
+  }: ProvinceDto) {
+    const provinces = await this.provinceRepo.find(
+      !!initialCode
+        ? { where: { code: initialCode } }
+        : {
+            where: {
+              regioncode: regionCode,
+              ...(!!search && { province: ILike(`%${search}%`) }),
+            },
+          },
+    );
 
     const { totalPage, data } = this.onPaginate(page, size, provinces);
     return this.successResponseService.PAGINATE(totalPage, data);
@@ -98,14 +109,19 @@ export class PhPlacesService {
     search,
     regionCode,
     provinceCode,
+    initialCode,
   }: CityOrMunicipalityDto) {
-    const cities = await this.cityOrMunicipalityRepo.find({
-      where: {
-        regioncode: regionCode,
-        ...(!!provinceCode && { provincecode: provinceCode }),
-        ...(!!search && { cityormunicipality: ILike(`%${search}%`) }),
-      },
-    });
+    const cities = await this.cityOrMunicipalityRepo.find(
+      !!initialCode
+        ? { where: { code: initialCode } }
+        : {
+            where: {
+              regioncode: regionCode,
+              ...(!!provinceCode && { provincecode: provinceCode }),
+              ...(!!search && { cityormunicipality: ILike(`%${search}%`) }),
+            },
+          },
+    );
 
     const { totalPage, data } = this.onPaginate(page, size, cities);
     return this.successResponseService.PAGINATE(totalPage, data);

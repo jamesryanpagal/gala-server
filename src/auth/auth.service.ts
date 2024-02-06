@@ -8,13 +8,26 @@ import {
   ErrorResponseService,
   SuccessResponseService,
 } from "src/utils/response/response.service";
-import { User, UserRepo } from "src/utils/schema";
+import {
+  CityOrMunicipality,
+  CityOrMunicipalityRepo,
+  Province,
+  ProvinceRepo,
+  Region,
+  RegionRepo,
+  User,
+  UserRepo,
+} from "src/utils/schema";
 import { LoginDto, SignupDto } from "src/utils/types";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepo: UserRepo,
+    @InjectRepository(Region) private regionRepo: RegionRepo,
+    @InjectRepository(Province) private provinceRepo: ProvinceRepo,
+    @InjectRepository(CityOrMunicipality)
+    private cityormunicipalityRepo: CityOrMunicipalityRepo,
     private successResponseService: SuccessResponseService,
     private errorResponseService: ErrorResponseService,
     private argonService: ArgonService,
@@ -25,14 +38,18 @@ export class AuthService {
 
   async onLogin({ email }: LoginDto) {
     try {
-      const user = await this.userService.getUser("email", email);
+      const user = await this.userService.getUser({
+        selectionType: "multiple",
+        key: ["username", "email"],
+        value: email,
+      });
 
       const token = await this.jwtService.signAsync(
         { id: user.userid },
         { secret: this.configService.get("TOKEN_KEY") },
       );
 
-      return this.successResponseService.OK({ token, ...user });
+      return this.successResponseService.OK({ token, user });
     } catch (error) {
       this.errorResponseService.CATCH(error);
     }
@@ -43,8 +60,11 @@ export class AuthService {
     middle,
     lastname,
     birthdate,
-    address,
-    cellphoneNum,
+    gender,
+    region,
+    province,
+    cityormunicipality,
+    cellphonenum,
     username,
     email,
     password,
@@ -52,16 +72,27 @@ export class AuthService {
     try {
       const hash = await this.argonService.hash(password);
 
+      const userRegion = await this.regionRepo.findOneBy({ code: region });
+      const userProvince =
+        (await this.provinceRepo.findOneBy({ code: province })) || null;
+      const userCityOrMunicipality =
+        await this.cityormunicipalityRepo.findOneBy({
+          code: cityormunicipality,
+        });
+
       const createUser = this.userRepo.create({
         firstname,
         middle,
         lastname,
         birthdate,
-        address,
-        cellphoneNum,
+        gender,
+        cellphonenum,
         username,
         email,
         password: hash,
+        region: userRegion,
+        province: userProvince,
+        cityormunicipality: userCityOrMunicipality,
       });
 
       const user = await this.userRepo.save(createUser);
@@ -71,11 +102,15 @@ export class AuthService {
         { secret: this.configService.get("TOKEN_KEY") },
       );
 
-      const getUser = await this.userService.getUser("email", email);
+      const getUser = await this.userService.getUser({
+        selectionType: "single",
+        key: "userid",
+        value: user.userid,
+      });
 
       return this.successResponseService.OK({
         token,
-        ...getUser,
+        user: getUser,
       });
     } catch (error) {
       this.errorResponseService.CATCH(error);

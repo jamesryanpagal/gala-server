@@ -4,14 +4,19 @@ import {
   DeleteDateColumn,
   Entity,
   Generated,
+  JoinColumn,
+  ManyToOne,
   PrimaryColumn,
   Repository,
   UpdateDateColumn,
 } from "typeorm";
+import { Region } from "../ph-places/Regions.entity";
+import { Province } from "../ph-places/Province.entity";
+import { CityOrMunicipality } from "../ph-places/CityOrMunicipality.entity";
 
 @Entity({ name: "users" })
 export class User {
-  @PrimaryColumn()
+  @PrimaryColumn("uuid")
   @Generated("uuid")
   userid: string;
 
@@ -28,16 +33,24 @@ export class User {
   birthdate: string;
 
   @Column()
-  region: string;
+  gender: number;
 
-  @Column({ nullable: true })
-  province: string;
+  @ManyToOne(() => Region, region => region.users)
+  @JoinColumn({ name: "regionId" })
+  region: Region;
+
+  @ManyToOne(() => Province, province => province.users, {
+    nullable: true,
+  })
+  @JoinColumn({ name: "provinceId" })
+  province: Province;
+
+  @ManyToOne(() => CityOrMunicipality, cm => cm.users)
+  @JoinColumn({ name: "cityormunicipalityId" })
+  cityormunicipality: CityOrMunicipality;
 
   @Column()
-  cityOrMunicipality: string;
-
-  @Column()
-  cellphoneNum: string;
+  cellphonenum: string;
 
   @Column({ unique: true })
   username: string;
