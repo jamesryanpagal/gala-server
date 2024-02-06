@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { ConfigService } from "@nestjs/config";
 import { LoginMiddleware, SignupMiddleware } from "src/utils/middlewares";
 import { TypeormAuthFeatures } from "src/utils/schema/typeorm.module";
 import { ArgonService } from "src/utils/argon/argon.service";
@@ -17,6 +18,7 @@ import { SignupPipe } from "src/utils/pipes/pipes.pipe";
   imports: [TypeormAuthFeatures, JwtModule.register({})],
   controllers: [AuthController],
   providers: [
+    ConfigService,
     AuthService,
     ArgonService,
     SuccessResponseService,
