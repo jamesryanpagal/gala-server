@@ -14,6 +14,8 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(port, !!host && `"${host}"`);
+  await app.listen(port, !!host && `"${host}"`, () => {
+    console.log(`Running on port ${port}\nhosted on ${host}`);
+  });
 }
 bootstrap();
