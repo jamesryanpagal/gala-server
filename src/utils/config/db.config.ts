@@ -6,7 +6,7 @@ export const config = () => ({
   DBUSERNAME: process.env.DB_USERNAME,
   DB_PASSWORD: process.env.DB_PASSWORD,
   DB: process.env.DB,
-  NESTPORT: parseInt(process.env.PORT) || 5550,
+  PORT: parseInt(process.env.PORT) || 5550,
   TOKEN_KEY: process.env.TOKEN_KEY,
 });
 
