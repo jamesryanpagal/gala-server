@@ -8,9 +8,9 @@ async function bootstrap() {
   const port = app.get(ConfigService).get("NESTPORT");
   const host = app.get(ConfigService).get("SERVERHOST");
 
-  console.log(host);
-
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(port, !!host && host);
+  await app.listen(port, !!host && `"${host}"`, () =>
+    console.log(`Listening on port: ${port}\nhosted on ${host}`),
+  );
 }
 bootstrap();
